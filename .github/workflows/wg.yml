@@ -1,1 +1,30 @@
+name: WireGuard Config Generator
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up WireGuard
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wireguard qrencode
+          wg genkey | tee privatekey | wg pubkey > publickey
+          PRIVATE_KEY=$(cat privatekey)
+          PUBLIC_KEY=$(cat publickey)
+          SERVER_PUBLIC_KEY=$PUBLIC_KEY
+          echo "[Interface]
+PrivateKey = $PRIVATE_KEY
+Address = 10.0.0.2/24
+DNS = 1.1.1.1
+
+[Peer]
+PublicKey = $SERVER_PUBLIC_KEY
+Endpoint = dummy.com:51820
+AllowedIPs = 0.0.0.0/0
+PersistentKeepalive = 25" > wg0.conf
+          cat wg0.conf
+          qrencode -t UTF8 < wg0.conf
 
